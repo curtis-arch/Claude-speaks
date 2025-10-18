@@ -69,6 +69,11 @@ STOP_TTS_PLAYER = os.getenv("STOP_TTS_PLAYER", "")  # Pin a specific player if n
 # Logging
 STOP_TTS_DEBUG = os.getenv("STOP_TTS_DEBUG", "1") == "1"
 
+# Audio sample saving
+SAVE_AUDIO_SAMPLES = os.getenv("SAVE_AUDIO_SAMPLES", "0") == "1"
+AUDIO_SAMPLES_DIR = Path(os.getenv("AUDIO_SAMPLES_DIR", str(Path.home() / ".claude/tts_samples")))
+MAX_SAVED_SAMPLES = int(os.getenv("MAX_SAVED_SAMPLES", "10"))
+
 # ============================================================================
 # Safe logging with API key redaction
 # ============================================================================
@@ -328,6 +333,28 @@ def synthesize_tts_wav(text: str) -> Optional[Path]:
         temp_path.write_bytes(audio_bytes)
 
         safe_log(f"TTS synthesized: {len(audio_bytes)} bytes -> {temp_path}")
+
+        # Save sample if enabled
+        if SAVE_AUDIO_SAMPLES:
+            try:
+                from datetime import datetime
+                AUDIO_SAMPLES_DIR.mkdir(parents=True, exist_ok=True)
+
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                sample_path = AUDIO_SAMPLES_DIR / f"stop_{timestamp}.wav"
+                sample_path.write_bytes(audio_bytes)
+
+                safe_log(f"Saved audio sample: {sample_path}")
+
+                # Cleanup: keep only last MAX_SAVED_SAMPLES files
+                samples = sorted(AUDIO_SAMPLES_DIR.glob("stop_*.wav"))
+                if len(samples) > MAX_SAVED_SAMPLES:
+                    for old_file in samples[:-MAX_SAVED_SAMPLES]:
+                        old_file.unlink()
+                        safe_log(f"Removed old sample: {old_file}")
+            except Exception as e:
+                safe_log(f"Failed to save audio sample: {e}")
+
         return temp_path
 
     except Exception as e:
