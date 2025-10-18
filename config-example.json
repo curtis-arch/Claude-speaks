@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run ~/.claude/hooks/notification_tts.py",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run ~/.claude/hooks/stop_tts.py",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

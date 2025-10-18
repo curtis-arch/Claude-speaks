@@ -1,0 +1,10 @@
+# Ignore all hidden files and directories
+.*
+
+# But include .gitignore itself
+!.gitignore
+
+# Temporary files
+delete.md
+# Context7 query archives (optional - uncomment to exclude from git)
+# context7-archive/
